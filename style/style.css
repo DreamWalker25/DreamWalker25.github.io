@@ -93,7 +93,14 @@ footer {
 }
 
 .carousel-item {
-  width: 1920px;
-  height: 1080px;
-  
-} /*# sourceMappingURL=style.css.map */
+  width: 100%;
+  max-height: 300px;
+  overflow: hidden;
+  position: relative;
+
+}
+*# sourceMappingURL=style.css.map */ 
+
+.carousel-caption{
+  z-index: 6;
+}
