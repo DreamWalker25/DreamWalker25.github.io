@@ -1,6 +1,10 @@
 <?php
 // Klucz API
-$apiKey = 'fc338d8a9f59638c237953486b1b3d82';
+if (!file_get_contents('api_key.txt')== false) {
+    $apiKey = file_get_contents('api_key.txt');
+}
+
+
 
 // Jeśli formularz został wysłany
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) {
