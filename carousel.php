@@ -3,6 +3,9 @@
     <div class="carousel-inner">
       <div class="carousel-item active">
         <img src="img/sloneczna.jpg" class="d-block w-100" alt="Pogoda słoneczna">
+        <div class="carousel-caption d-flex h-100 align-items-center justify-content-center">
+          <h1 class="display-3 text-white bg-dark bg-opacity-50 p-3 rounded">Pogodynka</h1>
+        </div>
       </div>
       <div class="carousel-item">
         <img src="img/pochmurna.jpg" class="d-block w-100" alt="Zachmurzenie">
