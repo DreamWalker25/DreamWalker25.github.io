@@ -1,5 +1,5 @@
 <?php
-$city = $_GET['city'] ?? 'Warsaw';
+$city = $_GET['city'] ?? 'Gliwice';
 include 'weather.php';
 include 'forecast.php';
 ?>
@@ -74,26 +74,26 @@ include 'forecast.php';
 
 <!-- Mapa: Geolokalizacja -->
 <script>
-  const defaultLat = 52.237049;
-  const defaultLng = 21.017532;
-  const map = L.map('map').setView([defaultLat, defaultLng], 6);
+  const defaultLat = 50.29249;
+  const defaultLng = 18.67201;
+  const map = L.map('map').setView([defaultLat, defaultLng], 12);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
 
   const marker = L.marker([defaultLat, defaultLng]).addTo(map)
-    .bindPopup('Domyślna lokalizacja (Warszawa)').openPopup();
+    .bindPopup('Domyślna lokalizacja (Gliwice)').openPopup();
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(position => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
 
-      map.setView([lat, lng], 11);
+      map.setView([lat, lng], 12);
       marker.setLatLng([lat, lng])
         .setPopupContent('Twoja lokalizacja')
-        .openPopup();
+        .openPopup(false);
     }, () => {
       console.warn("Brak zgody na geolokalizację");
     });

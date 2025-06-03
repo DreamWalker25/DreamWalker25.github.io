@@ -1,31 +1,58 @@
 <?php
-// Klucz API
-if (!file_get_contents('api_key.txt')== false) {
-    $apiKey = file_get_contents('api_key.txt');
+// Funkcja pomocnicza do pobierania danych cURL-em
+function fetchDataCurl($url) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // Bezpieczniejsze
+    $response = curl_exec($ch);
+    if (curl_errno($ch)) {
+        curl_close($ch);
+        return false;
+    }
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return ($http_code === 200) ? $response : false;
 }
 
-
+// Klucz API
+$apiKey = false;
+if (file_exists('api_key.txt')) {
+    $apiKey = trim(file_get_contents('api_key.txt'));
+}
 
 // Jeśli formularz został wysłany
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) {
+if ($apiKey && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) {
     $city = urlencode(trim($_POST['city']));
 
     // 1. Pobierz współrzędne geograficzne miasta
     $geoUrl = "http://api.openweathermap.org/geo/1.0/direct?q={$city}&limit=1&appid={$apiKey}";
-    $geoResponse = file_get_contents($geoUrl);
-    $geoData = json_decode($geoResponse, true);
+    $geoResponse = fetchDataCurl($geoUrl);
 
-    if (!empty($geoData)) {
-        $lat = $geoData[0]['lat'];
-        $lon = $geoData[0]['lon'];
+    if ($geoResponse !== false) {
+        $geoData = json_decode($geoResponse, true);
 
-        // 2. Pobierz dane pogodowe na podstawie współrzędnych
-        $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&lang=pl&appid={$apiKey}";
-        $weatherResponse = file_get_contents($weatherUrl);
-        $weatherData = json_decode($weatherResponse, true);
+        if (!empty($geoData)) {
+            $lat = $geoData[0]['lat'];
+            $lon = $geoData[0]['lon'];
+
+            // 2. Pobierz dane pogodowe
+            $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&lang=pl&appid={$apiKey}";
+            $weatherResponse = fetchDataCurl($weatherUrl);
+
+            if ($weatherResponse !== false) {
+                $weatherData = json_decode($weatherResponse, true);
+            } else {
+                $error = "Nie udało się pobrać danych pogodowych.";
+            }
+        } else {
+            $error = "Nie znaleziono miasta.";
+        }
     } else {
-        $error = "Nie znaleziono miasta.";
+        $error = "Błąd połączenia z serwerem geolokalizacji.";
     }
+} elseif (!$apiKey) {
+    $error = "Brak klucza API.";
 }
 ?>
 
@@ -50,7 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) {
         <p>Wilgotność: <?= $weatherData['main']['humidity'] ?>%</p>
         <p>Wiatr: <?= $weatherData['wind']['speed'] ?> m/s</p>
     <?php elseif (isset($error)): ?>
-        <p style="color:red;"><?= $error ?></p>
+        <p style="color:red;"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
+     <div id="map"></div>
+    <script type="module" src="./main.js"></script>
 </body>
 </html>
