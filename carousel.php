@@ -8,7 +8,7 @@
         <img src="https://source.unsplash.com/800x300/?clouds,sky" class="d-block w-100" alt="Zachmurzenie">
       </div>
       <div class="carousel-item">
-        <img src="https://source.unsplash.com/800x300/?storm,rain" class="d-block w-100" alt="Burza">
+        <img src="/img/burza.jpg" class="d-block w-100" alt="Burza">
       </div>
     </div>
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
