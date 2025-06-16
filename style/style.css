@@ -162,35 +162,44 @@ footer {
   flex-wrap: wrap;
   gap: 2rem;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: stretch;
+}
+.weather-layout > div {
+  flex: 1 1 45%;
+  min-width: 300px;
 }
 
 .weather-map {
-  flex: 1 1 50%;
-  max-width: 600px;
+  display: flex;
+  flex-direction: column;
 }
 .weather-map h2 {
   text-align: center;
   margin-bottom: 1rem;
 }
 .weather-map #map {
-  height: 400px;
+  flex: 1;
+  min-height: 400px;
   width: 100%;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .weather-info {
-  flex: 1 1 40%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background-color: white;
+  min-height: 400px;
 }
 .weather-info h2 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
   color: #2c3e50;
+  text-align: center;
 }
 .weather-info p {
   font-size: 1rem;

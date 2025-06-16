@@ -194,12 +194,17 @@ footer {
   flex-wrap: wrap;
   gap: 2rem;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: stretch; // <<< ważne
+
+  > div {
+    flex: 1 1 45%;
+    min-width: 300px;
+  }
 }
 
 .weather-map {
-  flex: 1 1 50%;
-  max-width: 600px;
+  display: flex;
+  flex-direction: column;
 
   h2 {
     text-align: center;
@@ -207,7 +212,8 @@ footer {
   }
 
   #map {
-    height: 400px;
+    flex: 1;
+    min-height: 400px; // <<< wysokość bazowa
     width: 100%;
     border-radius: 12px;
     box-shadow: $shadow;
@@ -215,16 +221,20 @@ footer {
 }
 
 .weather-info {
-  flex: 1 1 40%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: $shadow;
   background-color: lighten($bg-color, 5%);
+  min-height: 400px; // <<< równa wysokość mapie
 
   h2 {
     font-size: 1.5rem;
     margin-bottom: 1rem;
     color: $text-color;
+    text-align: center;
   }
 
   p {
