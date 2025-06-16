@@ -1,74 +1,105 @@
-// zachowujemy poprzednie zmienne
-$primary-color: #3498db;
-$bg-color: #ecf0f1;
-$text-color: #2c3e50;
+// Kolory
+$primary-color: #3498db; // niebieski
+$bg-color: #f4f6f8;      // jasna szarość
+$text-color: #2c3e50;    // ciemnoszary
+$card-bg: #ffffff;
+$input-bg: #f0f3f5;
+$shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-body {
-  font-family: sans-serif;
-  background: $bg-color;
-  color: $text-color;
-  display: flex;
-  justify-content: center;
-  padding: 50px;
-  height: 100%;
+// Reset
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-   display: flex;
+}
+
+// Body & Main
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #2f3640;
+  color: $text-color;
+  display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
+main {
+  flex: 1;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+// Container
 .container {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  width: 600px;
+  background: $card-bg;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: $shadow;
   text-align: center;
 
   h1 {
-    margin-bottom: 20px;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
   }
 
   form {
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
 
     input {
-      padding: 10px;
-      width: 60%;
-      margin-right: 10px;
+      padding: 0.75rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: $input-bg;
+      width: 50%;
     }
 
     button {
-      padding: 10px;
+      padding: 0.75rem 1.5rem;
       background: $primary-color;
       color: white;
       border: none;
+      border-radius: 8px;
+      transition: background 0.3s ease;
       cursor: pointer;
+
+      &:hover {
+        background: darken($primary-color, 10%);
+      }
     }
   }
 
   .weather {
+    margin-bottom: 2rem;
+
     img {
       width: 80px;
     }
 
     p {
-      margin: 5px 0;
+      margin: 0.5rem 0;
     }
   }
 
   .forecast {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
-    margin-top: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
 
-    .forecast-entry {
-      background: $bg-color;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.9em;
+    .card {
+      background: $input-bg;
+      border: none;
+      border-radius: 10px;
+      box-shadow: $shadow;
+      padding: 1rem;
+
+      .card-text {
+        margin: 0.5rem 0;
+      }
 
       img {
         width: 50px;
@@ -76,35 +107,47 @@ body {
     }
   }
 }
+
+// Mapa
 #map {
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  margin-bottom: 40px;
-    height: 400px;
+  height: 400px;
+  border-radius: 12px;
+  box-shadow: $shadow;
+  margin-top: 2rem;
   width: 100%;
-
-}
-.weather img {
-  width: 80px;
 }
 
-.forecast .card img {
-  width: 50px;
-}
-main {
-  flex: 1;
-  width: 80vw;
-  min-height: 80vh;
-  margin: 0 auto;
-  padding: 2rem;
-}
+// Footer
 footer {
-  background: #212529;
+  background: #1f2b38;
   color: white;
   text-align: center;
   padding: 1rem;
+  margin-top: auto;
 }
-.carousle-item{
-  width: 1920px;
-  height: 1080px;
+
+// Karuzela
+.carousel-item {
+  height: 300px;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: $shadow;
+  background-color: #2f3640; // tło karuzeli (ciemna szarość)
+}
+#region-info {
+  background-color: lighten($bg-color, 5%);
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: $shadow;
+
+  h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1rem;
+    color: darken($text-color, 10%);
+  }
 }

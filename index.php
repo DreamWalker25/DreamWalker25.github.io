@@ -2,6 +2,7 @@
 $city = $_GET['city'] ?? 'Gliwice';
 include 'weather.php';
 include 'forecast.php';
+include 'config.php';
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -64,6 +65,10 @@ include 'forecast.php';
 
     <h2 class="mt-5 text-center">Twoja lokalizacja na mapie</h2>
     <div id="map" class="my-4 rounded shadow" style="height: 400px;"></div>
+    <div id="region-info" class="bg-light p-4 rounded shadow-sm">
+  <h3 class="mb-3">Informacje o wybranym obszarze</h3>
+  <p id="info-content">Kliknij na mapie lub wybierz miasto, aby zobaczyć szczegóły.</p>
+</div>
   </main>
 
   <?php include 'footer.php'; ?>
@@ -76,69 +81,62 @@ include 'forecast.php';
 
   <!-- Mapa: Geolokalizacja -->
   <script>
-    const defaultLat = 50.29249;
-    const defaultLng = 18.67201;
-    const map = L.map('map').setView([defaultLat, defaultLng], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
+  const defaultLat = 50.29249;
+  const defaultLng = 18.67201;
 
-    // if (navigator.geolocation) { //Działa
-    //   navigator.geolocation.getCurrentPosition(position => {
-    //     const lat = position.coords.latitude;
-    //     const lng = position.coords.longitude;
+  const map = L.map('map').setView([defaultLat, defaultLng], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
 
-    //     map.setView([lat, lng], 13);
-    //     marker.setLatLng([lat, lng])
-    //       .setPopupContent('Twoja lokalizacja');
-    //   }, () => {
-    //     console.warn("Brak zgody na geolokalizację");
-    //   });
-    // } else {
-    let apiKey = '';
+  const marker = L.marker([defaultLat, defaultLng]).addTo(map)
+    .bindPopup('Domyślna lokalizacja (Gliwice)');
 
-    // Pobierz klucz API z pliku tekstowego
-    fetch('api_key.txt')
-      .then(response => response.text())
-      .then(text => {
-        apiKey = text.trim();
-      })
-      .catch(err => {
-        console.error('Błąd wczytywania klucza API:', err);
-      });
+  let apiKey = '';
 
-    document.getElementById('miasto').addEventListener('click', async function(e) {
-      e.preventDefault();
-      console.log('Formularz wysłany');
-      const cityName = document.getElementById('miastoinput').value;
-      const apiUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
-      try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
+  // Wczytanie klucza API i dopiero potem aktywacja funkcji
+  fetch('api_key.txt')
+    .then(response => response.text())
+    .then(text => {
+      apiKey = text.trim();
 
-        if (data.length === 0) {
-          console.log('Nie znaleziono miasta.');
-          return;
+      // Po poprawnym załadowaniu API Key - aktywujemy obsługę formularza
+      document.getElementById('miasto').addEventListener('click', async function (e) {
+        e.preventDefault();
+
+        const cityName = document.getElementById('miastoinput').value.trim();
+        if (!cityName) return;
+
+        const apiUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
+
+        try {
+          const response = await fetch(apiUrl);
+          const data = await response.json();
+
+          // Sprawdzenie poprawności odpowiedzi
+          if (!data || data.length === 0 || !data[0].lat || !data[0].lon) {
+            alert('Nie znaleziono lokalizacji.');
+            return;
+          }
+
+          const lat = data[0].lat;
+          const lng = data[0].lon;
+
+          map.setView([lat, lng], 13);
+          marker.setLatLng([lat, lng])
+            .setPopupContent(`Wybrana lokalizacja: ${cityName}`)
+            .openPopup();
+        } catch (error) {
+          console.error('Błąd podczas pobierania danych geolokalizacyjnych:', error);
+          alert('Wystąpił błąd podczas pobierania danych.');
         }
-
-        const lat = data[0].lat;
-        const lng = data[0].lon;
-
-        map.setView([lat, lng], 13);
-        marker.setLatLng([lat, lng])
-          .setPopupContent('Twoja lokalizacja');
-
-
-      } catch (error) {
-        console.error('Błąd podczas pobierania danych:', error);
-      }
+      });
+    })
+    .catch(err => {
+      console.error('Błąd wczytywania klucza API:', err);
+      alert('Nie udało się wczytać klucza API.');
     });
-    // }
-
-
-    const marker = L.marker([defaultLat, defaultLng]).addTo(map)
-      .bindPopup('Domyślna lokalizacja (Gliwice)');
-  </script>
+</script>
 </body>
 
 </html>
