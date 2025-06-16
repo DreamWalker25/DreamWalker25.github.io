@@ -151,3 +151,85 @@ footer {
     color: darken($text-color, 10%);
   }
 }
+
+.weather-header {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .weather-form {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+
+    input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: $input-bg;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      background: $primary-color;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      transition: background 0.3s ease;
+      cursor: pointer;
+
+      &:hover {
+        background: darken($primary-color, 10%);
+      }
+    }
+  }
+}
+
+.weather-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.weather-map {
+  flex: 1 1 50%;
+  max-width: 600px;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  #map {
+    height: 400px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: $shadow;
+  }
+}
+
+.weather-info {
+  flex: 1 1 40%;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: $shadow;
+  background-color: lighten($bg-color, 5%);
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: $text-color;
+  }
+
+  p {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: darken($text-color, 10%);
+  }
+}

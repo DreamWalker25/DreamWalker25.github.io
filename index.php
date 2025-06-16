@@ -63,17 +63,22 @@ if ($apiKey && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) 
   <?php include 'carousel.php'; ?>
 
   <main class="container my-5">
-    <h1 class="text-center mb-4">Pogoda dla miasta: <?= htmlspecialchars($city) ?></h1>
+  <div class="weather-header">
+    <h1>Pogoda dla miasta: <?= htmlspecialchars($city) ?></h1>
 
-    <form method="POST" class="d-flex justify-content-center mb-4">
-      <input id="miasto" type="text" name="city" class="form-control w-50 me-2" placeholder="Wpisz miasto" required>
+    <form method="POST" class="weather-form">
+      <input id="miasto" type="text" name="city" class="form-control" placeholder="Wpisz miasto" required>
       <button id="miastobutton" type="submit" class="btn btn-primary">Sprawdź</button>
     </form>
+  </div>
 
-    <h2 class="mt-5 text-center">Twoja lokalizacja na mapie</h2>
-    <div id="map" style="height: 400px;"></div>
+  <div class="weather-layout">
+    <div class="weather-map">
+      <h2>Twoja lokalizacja na mapie</h2>
+      <div id="map"></div>
+    </div>
 
-    <div id="region-info" class="bg-light p-4 rounded shadow-sm mt-4">
+    <div id="region-info" class="weather-info">
       <?php if ($weatherData): ?>
         <h2>Pogoda w <?= htmlspecialchars($city) ?></h2>
         <p>Temperatura: <?= $weatherData['main']['temp'] ?> °C</p>
@@ -84,7 +89,8 @@ if ($apiKey && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) 
         <p class="text-muted">Brak danych pogodowych.</p>
       <?php endif; ?>
     </div>
-  </main>
+  </div>
+</main>
 
   <?php include 'footer.php'; ?>
 
