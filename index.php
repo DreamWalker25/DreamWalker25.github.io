@@ -2,14 +2,18 @@
 include 'weather.php';
 include 'forecast.php';
 include 'config.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
 
 ?>
 <!DOCTYPE html>
 <html lang="pl">
 
 <head>
+  <?php
+  if (isset($error)) {
+    echo "<div class='alert alert-danger'>$error</div>";
+  }
+  ?>
   <meta charset="UTF-8">
   <title>Pogoda dla <?= htmlspecialchars($city) ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,7 +28,6 @@ ini_set('display_errors', 1);
 </head>
 
 <body>
-
   <?php include 'carousel.php'; ?>
 
   <main class="container my-5">
@@ -36,69 +39,137 @@ ini_set('display_errors', 1);
     </form>
 
     <?php
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
     // Funkcja pomocnicza do pobierania danych cURL-em
     function fetchDataCurl($url)
     {
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, $url);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // Bezpieczniejsze
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // jeśli jest redirect
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // na testy — wyłącz w produkcji!
+      curl_setopt($ch, CURLOPT_TIMEOUT, 10); // limit 10s
+
       $response = curl_exec($ch);
-      if (curl_errno($ch)) {
-        curl_close($ch);
-        return false;
+      if ($response === false) {
+        echo "<div class='alert alert-danger'>cURL error: " . curl_error($ch) . "</div>";
+      } else {
+        echo "<div class='alert alert-success'>cURL success: " . strlen($response) . " bytes</div>";
       }
-      $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
       curl_close($ch);
-      return ($http_code === 200) ? $response : false;
+      return $response;
     }
 
+
     // Klucz API
+    // $apiKey = null;
+    // if (file_exists('api_key.txt')) {
+    //   $apiKey = trim(file_get_contents('api_key.txt'));
+    //   echo "<script>console.log('Klucz API wczytany pomyślnie.');</script>";
+    // }
     $apiKey = null;
     if (file_exists('api_key.txt')) {
       $apiKey = trim(file_get_contents('api_key.txt'));
-      echo "<script>console.log('Klucz API wczytany pomyślnie.');</script>";
+      echo "<div class='alert alert-success'>Klucz API wczytany</div>";
+    } else {
+      echo "<div class='alert alert-danger'>Brak pliku api_key.txt</div>";
     }
 
-    // Jeśli formularz został wysłany
     if ($apiKey && $_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['city'])) {
-      echo "<script>console.log('Formularz został wysłany.');</script>";
       $city = urlencode(trim($_POST['city']));
-      // 1. Pobierz współrzędne geograficzne miasta
-      $geoUrl = "http://api.openweathermap.org/geo/1.0/direct?q={$city}&limit=1&appid={$apiKey}";
-      $geoResponse = fetchDataCurl($geoUrl);
+      echo "<div>Miasto: " . htmlspecialchars($city) . "</div>";
 
-      if ($geoResponse !== false) {
+      // Pobierz współrzędne geograficzne
+      $geoUrl = "http://api.openweathermap.org/geo/1.0/direct?q={$city}&limit=1&appid={$apiKey}";
+      echo "<div>Geo URL: " . htmlspecialchars($geoUrl) . "</div>";
+
+      $geoResponse = fetchDataCurl($geoUrl);
+      if ($geoResponse === false) {
+        echo "<div class='alert alert-danger'>Błąd połączenia z serwerem geolokalizacji.</div>";
+      } else {
+        echo "<pre>Geo response: " . htmlspecialchars($geoResponse) . "</pre>";
+
         $geoData = json_decode($geoResponse, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-          $error = "Nieprawidłowy format danych JSON: " . json_last_error_msg();
-          $geoData = null;
-          error_log($error); // Log the error for debugging
-        }
-
-        if (!empty($geoData)) {
-          $lat = $geoData[0]['lat'];
-          $lon = $geoData[0]['lon'];
-
-          // 2. Pobierz dane pogodowe
-          $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&lang=pl&appid={$apiKey}";
-          $weatherResponse = fetchDataCurl($weatherUrl);
-
-          if ($weatherResponse !== false) {
-            $weatherData = json_decode($weatherResponse, true);
-            echo "<script>console.log(" . json_encode($weatherData) . ");</script>";
-          } else {
-            $error = "Nie udało się pobrać danych pogodowych.";
-          }
+          echo "<div class='alert alert-danger'>Błąd dekodowania JSON: " . json_last_error_msg() . "</div>";
         } else {
-          $error = "Nie znaleziono miasta.";
+          echo "<pre>";
+          print_r($geoData);
+          echo "</pre>";
+
+          if (!empty($geoData) && isset($geoData[0]['lat'], $geoData[0]['lon'])) {
+            $lat = $geoData[0]['lat'];
+            $lon = $geoData[0]['lon'];
+            echo "<div>Lat: $lat, Lon: $lon</div>";
+
+            // Pobierz dane pogodowe
+            $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&lang=pl&appid={$apiKey}";
+            echo "<div>Weather URL: " . htmlspecialchars($weatherUrl) . "</div>";
+
+            $weatherResponse = fetchDataCurl($weatherUrl);
+            if ($weatherResponse === false) {
+              echo "<div class='alert alert-danger'>Nie udało się pobrać danych pogodowych.</div>";
+            } else {
+              echo "<pre>Weather response: " . htmlspecialchars($weatherResponse) . "</pre>";
+              $weatherData = json_decode($weatherResponse, true);
+              if (json_last_error() !== JSON_ERROR_NONE) {
+                echo "<div class='alert alert-danger'>Błąd dekodowania JSON pogody: " . json_last_error_msg() . "</div>";
+              } else {
+                echo "<pre>";
+                print_r($weatherData);
+                echo "</pre>";
+              }
+            }
+          } else {
+            echo "<div class='alert alert-warning'>Nie znaleziono współrzędnych dla podanego miasta.</div>";
+          }
         }
-      } else {
-        $error = "Błąd połączenia z serwerem geolokalizacji.";
       }
-    } elseif (!$apiKey) {
-      $error = "Brak klucza API.";
     }
+    // // Jeśli formularz został wysłany
+    // if ($apiKey && $_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['city'])) {
+    //   echo "<script>console.log('Formularz został wysłany.');</script>";
+    //   $city = urlencode(trim($_POST['city']));
+    //   // 1. Pobierz współrzędne geograficzne miasta
+    //   $geoUrl = "http://api.openweathermap.org/geo/1.0/direct?q={$city}&limit=1&appid={$apiKey}";
+    //   $geoResponse = fetchDataCurl($geoUrl);
+
+    //   echo "<script>console.log('Zapytanie geolokalizacyjne: " . htmlspecialchars($geoUrl) . "');</script>";
+
+    //   if ($geoResponse !== false) {
+    //     $geoData = json_decode($geoResponse, true);
+    //     if (json_last_error() !== JSON_ERROR_NONE) {
+    //       $error = "Nieprawidłowy format danych JSON: " . json_last_error_msg();
+    //       $geoData = null;
+    //       error_log($error); // Log the error for debugging
+    //     }
+    //     echo "<script>console.log('Dane geolokalizacyjne: " . json_encode($geoData) . "');</script>";
+
+    //     if ($geoData !== null) {
+    //       $lat = $geoData[0]['lat'];
+    //       $lon = $geoData[0]['lon'];
+
+    //       // 2. Pobierz dane pogodowe
+    //       $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&lang=pl&appid={$apiKey}";
+    //       $weatherResponse = fetchDataCurl($weatherUrl);
+
+    //       if ($weatherResponse !== false) {
+    //         $weatherData = json_decode($weatherResponse, true);
+    //         echo "<script>console.log(" . json_encode($weatherData) . ");</script>";
+    //       } else {
+    //         $error = "Nie udało się pobrać danych pogodowych.";
+    //       }
+    //     } else {
+    //       $error = "Nie znaleziono miasta.";
+    //     }
+    //   } else {
+    //     $error = "Błąd połączenia z serwerem geolokalizacji.";
+    //   }
+    // } elseif (!$apiKey) {
+    //   $error = "Brak klucza API.";
+    // }
     ?>
 
 
