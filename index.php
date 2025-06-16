@@ -1,8 +1,10 @@
-<?php
-$city = $_GET['city'] ?? 'Gliwice';
+<?php $city = isset($_POST['city']) ? trim($_POST['city']) : 'Gliwice'; // Domyślne miasto
 include 'weather.php';
 include 'forecast.php';
 include 'config.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -28,47 +30,93 @@ include 'config.php';
   <main class="container my-5">
     <h1 class="text-center mb-4">Pogoda dla miasta: <?= htmlspecialchars($city) ?></h1>
 
-    <form method="get" class="d-flex justify-content-center mb-4">
-      <input id="miastoinput" type="text" name="city" class="form-control w-50 me-2" placeholder="Wpisz miasto" required>
-      <button id="miasto" type="submit" class="btn btn-primary">Sprawdź</button>
+    <form method="POST" class="d-flex justify-content-center mb-4">
+      <input id="miasto" type="text" name="city" class="form-control w-50 me-2" placeholder="Wpisz miasto" required>
+      <button id="miastobutton" type="submit" class="btn btn-primary">Sprawdź</button>
     </form>
 
-    <?php if ($weatherData && $weatherData['cod'] == 200): ?>
-      <div class="weather text-center mb-5">
-        <img src="https://openweathermap.org/img/wn/<?= $weatherData['weather'][0]['icon'] ?>@2x.png" alt="Ikona pogody">
-        <p>Temperatura: <?= $weatherData['main']['temp'] ?>°C</p>
+    <?php
+    // Funkcja pomocnicza do pobierania danych cURL-em
+    function fetchDataCurl($url)
+    {
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // Bezpieczniejsze
+      $response = curl_exec($ch);
+      if (curl_errno($ch)) {
+        curl_close($ch);
+        return false;
+      }
+      $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      return ($http_code === 200) ? $response : false;
+    }
+
+    // Klucz API
+    $apiKey = null;
+    if (file_exists('api_key.txt')) {
+      $apiKey = trim(file_get_contents('api_key.txt'));
+      echo "<script>console.log('Klucz API wczytany pomyślnie.');</script>";
+    }
+
+    // Jeśli formularz został wysłany
+    if ($apiKey && $_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_POST['city'])) {
+      echo "<script>console.log('Formularz został wysłany.');</script>";
+      $city = urlencode(trim($_POST['city']));
+      // 1. Pobierz współrzędne geograficzne miasta
+      $geoUrl = "http://api.openweathermap.org/geo/1.0/direct?q={$city}&limit=1&appid={$apiKey}";
+      $geoResponse = fetchDataCurl($geoUrl);
+
+      if ($geoResponse !== false) {
+        $geoData = json_decode($geoResponse, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+          $error = "Nieprawidłowy format danych JSON: " . json_last_error_msg();
+          $geoData = null;
+          error_log($error); // Log the error for debugging
+        }
+
+        if (!empty($geoData)) {
+          $lat = $geoData[0]['lat'];
+          $lon = $geoData[0]['lon'];
+
+          // 2. Pobierz dane pogodowe
+          $weatherUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&lang=pl&appid={$apiKey}";
+          $weatherResponse = fetchDataCurl($weatherUrl);
+
+          if ($weatherResponse !== false) {
+            $weatherData = json_decode($weatherResponse, true);
+            echo "<script>console.log(" . json_encode($weatherData) . ");</script>";
+          } else {
+            $error = "Nie udało się pobrać danych pogodowych.";
+          }
+        } else {
+          $error = "Nie znaleziono miasta.";
+        }
+      } else {
+        $error = "Błąd połączenia z serwerem geolokalizacji.";
+      }
+    } elseif (!$apiKey) {
+      $error = "Brak klucza API.";
+    }
+    ?>
+
+
+    <h2 class="mt-5 text-center">Twoja lokalizacja na mapie</h2>
+    <div id="map"></div>
+
+    <div id="region-info" class="bg-light p-4 rounded shadow-sm">
+      <?php if (isset($weatherData)): ?>
+        <h2>Pogoda w <?= htmlspecialchars($city) ?></h2>
+        <h2>Pogoda w <?= htmlspecialchars($_POST['city']) ?></h2>
+        <p>Temperatura: <?= $weatherData['main']['temp'] ?> °C</p>
         <p>Opis: <?= $weatherData['weather'][0]['description'] ?></p>
         <p>Wilgotność: <?= $weatherData['main']['humidity'] ?>%</p>
         <p>Wiatr: <?= $weatherData['wind']['speed'] ?> m/s</p>
-        <p>Ciśnienie: <?= $weatherData['main']['pressure'] ?> hPa</p>
-      </div>
-
-      <h2 class="mb-3">Prognoza 5-dniowa</h2>
-      <div class="forecast row g-3">
-        <?php foreach ($forecastData['list'] as $entry): ?>
-          <?php $date = date('d.m H:i', strtotime($entry['dt_txt'])); ?>
-          <div class="col-6 col-md-2">
-            <div class="card text-center">
-              <div class="card-body">
-                <p class="card-text"><?= $date ?></p>
-                <img src="https://openweathermap.org/img/wn/<?= $entry['weather'][0]['icon'] ?>.png" alt="icon">
-                <p class="card-text"><?= $entry['main']['temp'] ?>°C</p>
-              </div>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      </div>
-
-    <?php else: ?>
-      <p class="text-danger text-center">Nie udało się pobrać danych pogodowych dla <strong><?= htmlspecialchars($city) ?></strong>.</p>
-    <?php endif; ?>
-
-    <h2 class="mt-5 text-center">Twoja lokalizacja na mapie</h2>
-    <div id="map" class="my-4 rounded shadow" style="height: 400px;"></div>
-    <div id="region-info" class="bg-light p-4 rounded shadow-sm">
-  <h3 class="mb-3">Informacje o wybranym obszarze</h3>
-  <p id="info-content">Kliknij na mapie lub wybierz miasto, aby zobaczyć szczegóły.</p>
-</div>
+      <?php elseif (isset($error)): ?>
+        <p style="color:red;"><?= htmlspecialchars($error) ?></p>
+      <?php endif; ?>
+    </div>
   </main>
 
   <?php include 'footer.php'; ?>
@@ -80,61 +128,61 @@ include 'config.php';
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- Mapa: Geolokalizacja -->
- <script>
-  const defaultLat = 50.29249;
-  const defaultLng = 18.67201;
+  <script>
+    const defaultLat = 50.29249;
+    const defaultLng = 18.67201;
 
-  const map = L.map('map').setView([defaultLat, defaultLng], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+    const map = L.map('map').setView([defaultLat, defaultLng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
 
-  const marker = L.marker([defaultLat, defaultLng]).addTo(map)
-    .bindPopup('Domyślna lokalizacja (Gliwice)');
+    const marker = L.marker([defaultLat, defaultLng]).addTo(map)
+      .bindPopup('Domyślna lokalizacja (Gliwice)');
 
-  let apiKey = '';
+    let apiKey = '';
 
-  fetch('api_key.txt')
-    .then(response => response.text())
-    .then(text => {
-      apiKey = text.trim();
+    fetch('api_key.txt')
+      .then(response => response.text())
+      .then(text => {
+        apiKey = text.trim();
 
-      document.getElementById('miasto').addEventListener('click', async function (e) {
-        e.preventDefault();
+        document.getElementById('miastobutton').addEventListener('click', async function(e) {
+          e.preventDefault();
 
-        const cityName = document.getElementById('miastoinput').value.trim();
-        if (!cityName) return;
+          const cityName = document.getElementById('miasto').value.trim();
+          if (!cityName) return;
 
-        const apiUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
+          const apiUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
 
-        try {
-          const response = await fetch(apiUrl);
-          const data = await response.json();
+          try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
 
-          // === WALIDACJA DANYCH ===
-          if (!data || data.length === 0 || !data[0].lat || !data[0].lon) {
-            alert('Nie znaleziono lokalizacji lub błąd klucza API.');
-            return;
+            // === WALIDACJA DANYCH ===
+            if (!data || data.length === 0 || !data[0].lat || !data[0].lon) {
+              alert('Nie znaleziono lokalizacji lub błąd klucza API.');
+              return;
+            }
+
+            const lat = data[0].lat;
+            const lng = data[0].lon;
+
+            map.setView([lat, lng], 13);
+            marker.setLatLng([lat, lng])
+              .setPopupContent(`Wybrana lokalizacja: ${cityName}`)
+              .openPopup();
+          } catch (error) {
+            console.error('Błąd podczas pobierania danych geolokalizacyjnych:', error);
+            alert('Wystąpił błąd podczas pobierania danych.');
           }
-
-          const lat = data[0].lat;
-          const lng = data[0].lon;
-
-          map.setView([lat, lng], 13);
-          marker.setLatLng([lat, lng])
-            .setPopupContent(`Wybrana lokalizacja: ${cityName}`)
-            .openPopup();
-        } catch (error) {
-          console.error('Błąd podczas pobierania danych geolokalizacyjnych:', error);
-          alert('Wystąpił błąd podczas pobierania danych.');
-        }
+        });
+      })
+      .catch(err => {
+        console.error('Błąd wczytywania klucza API:', err);
+        alert('Nie udało się wczytać klucza API.');
       });
-    })
-    .catch(err => {
-      console.error('Błąd wczytywania klucza API:', err);
-      alert('Nie udało się wczytać klucza API.');
-    });
-</script>
+  </script>
 </body>
 
 </html>

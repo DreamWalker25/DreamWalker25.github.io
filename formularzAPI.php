@@ -1,6 +1,7 @@
 <?php
 // Funkcja pomocnicza do pobierania danych cURL-em
-function fetchDataCurl($url) {
+function fetchDataCurl($url)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -58,10 +59,12 @@ if ($apiKey && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) 
 
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
     <meta charset="UTF-8">
     <title>Sprawdź pogodę</title>
 </head>
+
 <body>
     <h1>Sprawdź pogodę w swoim mieście</h1>
     <form method="POST">
@@ -79,7 +82,7 @@ if ($apiKey && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) 
     <?php elseif (isset($error)): ?>
         <p style="color:red;"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
-     <div id="map"></div>
-    <script type="module" src="./main.js"></script>
+    <div id="map"></div>
 </body>
+
 </html>
