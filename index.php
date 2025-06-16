@@ -80,7 +80,7 @@ include 'config.php';
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- Mapa: Geolokalizacja -->
-  <script>
+ <script>
   const defaultLat = 50.29249;
   const defaultLng = 18.67201;
 
@@ -94,13 +94,11 @@ include 'config.php';
 
   let apiKey = '';
 
-  // Wczytanie klucza API i dopiero potem aktywacja funkcji
   fetch('api_key.txt')
     .then(response => response.text())
     .then(text => {
       apiKey = text.trim();
 
-      // Po poprawnym załadowaniu API Key - aktywujemy obsługę formularza
       document.getElementById('miasto').addEventListener('click', async function (e) {
         e.preventDefault();
 
@@ -113,9 +111,9 @@ include 'config.php';
           const response = await fetch(apiUrl);
           const data = await response.json();
 
-          // Sprawdzenie poprawności odpowiedzi
+          // === WALIDACJA DANYCH ===
           if (!data || data.length === 0 || !data[0].lat || !data[0].lon) {
-            alert('Nie znaleziono lokalizacji.');
+            alert('Nie znaleziono lokalizacji lub błąd klucza API.');
             return;
           }
 
