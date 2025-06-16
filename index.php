@@ -62,35 +62,35 @@ if ($apiKey && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['city'])) 
 <body>
   <?php include 'carousel.php'; ?>
 
-  <main class="container my-5">
-  <div class="weather-header">
-    <h1>Pogoda dla miasta: <?= htmlspecialchars($city) ?></h1>
+  <main class="container my-4">
+    <div class="weather-header">
+      <h1>Pogoda dla miasta: <?= htmlspecialchars(ucfirst($city)) ?></h1>
 
-    <form method="POST" class="weather-form">
-      <input id="miasto" type="text" name="city" class="form-control" placeholder="Wpisz miasto" required>
-      <button id="miastobutton" type="submit" class="btn btn-primary">Sprawdź</button>
-    </form>
-  </div>
-
-  <div class="weather-layout">
-    <div class="weather-map">
-      <h2>Twoja lokalizacja na mapie</h2>
-      <div id="map"></div>
+      <form method="POST" class="weather-form">
+        <input id="miasto" type="text" name="city" class="form-control" placeholder="Wpisz miasto" required>
+        <button id="miastobutton" type="submit" class="btn btn-primary">Sprawdź</button>
+      </form>
     </div>
 
-    <div id="region-info" class="weather-info">
-      <?php if ($weatherData): ?>
-        <h2>Pogoda w <?= htmlspecialchars($city) ?></h2>
-        <p>Temperatura: <?= $weatherData['main']['temp'] ?> °C</p>
-        <p>Opis: <?= $weatherData['weather'][0]['description'] ?></p>
-        <p>Wilgotność: <?= $weatherData['main']['humidity'] ?>%</p>
-        <p>Wiatr: <?= $weatherData['wind']['speed'] ?> m/s</p>
-      <?php else: ?>
-        <p class="text-muted">Brak danych pogodowych.</p>
-      <?php endif; ?>
+    <div class="weather-layout">
+      <div class="weather-map">
+        <h2>Twoja lokalizacja na mapie</h2>
+        <div id="map"></div>
+      </div>
+
+      <div id="region-info" class="weather-info">
+        <?php if ($weatherData): ?>
+          <h2>Pogoda w <?= htmlspecialchars(ucfirst($city)) ?></h2>
+          <p>Temperatura: <?= $weatherData['main']['temp'] ?> °C</p>
+          <p>Opis: <?= $weatherData['weather'][0]['description'] ?></p>
+          <p>Wilgotność: <?= $weatherData['main']['humidity'] ?>%</p>
+          <p>Wiatr: <?= $weatherData['wind']['speed'] ?> m/s</p>
+        <?php else: ?>
+          <p class="text-muted">Brak danych pogodowych.</p>
+        <?php endif; ?>
+      </div>
     </div>
-  </div>
-</main>
+  </main>
 
   <?php include 'footer.php'; ?>
 
