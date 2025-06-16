@@ -224,22 +224,29 @@ footer {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 1.5rem;
-  border-radius: 12px;
+  padding: 2rem;
+  border-radius: 16px;
   box-shadow: $shadow;
   background-color: lighten($bg-color, 5%);
-  min-height: 400px; // <<< równa wysokość mapie
+  min-height: 400px;
 
   h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
     color: $text-color;
     text-align: center;
+    font-weight: 600;
   }
 
   p {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    color: darken($text-color, 10%);
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: darken($text-color, 15%);
+    text-align: center;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 }
