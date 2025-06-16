@@ -5,13 +5,13 @@
   <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-inner">
       <div class="carousel-item active">
-        <img src="img/sloneczna.jpg" class="d-block w-100" alt="Pogoda słoneczna">
+        <img src="img/sloneczna.png" class="d-block w-100" alt="Pogoda słoneczna">
       </div>
       <div class="carousel-item">
-        <img src="img/pochmurna.jpg" class="d-block w-100" alt="Zachmurzenie">
+        <img src="img/pochmurna.png" class="d-block w-100" alt="Zachmurzenie">
       </div>
       <div class="carousel-item">
-        <img src="img/burza.jpg" class="d-block w-100" alt="Burza">
+        <img src="img/burza.png" class="d-block w-100" alt="Burza">
       </div>
     </div>
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
